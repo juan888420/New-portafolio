@@ -4,29 +4,33 @@ import { useEffect, useRef } from "react";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CELL = 48;
-const SPOTLIGHT_RADIUS = 180;
-const LINE_COLOR_LIT  = "rgba(255,255,255,0.18)";
-const LINE_COLOR_REST = "rgba(255,255,255,0.04)";
+const CELL = typeof window !== "undefined"
+  ? window.innerWidth > 1600
+    ? 64
+    : 56
+  : 56;                                  // wider cells → less density
+const SPOTLIGHT_RADIUS = 140;                       // tighter spotlight → less area lit
+const LINE_COLOR_LIT  = "rgba(255,255,255,0.09)";  // was 0.18 — much softer peak
+const LINE_COLOR_REST = "rgba(255,255,255,0.022)";  // was 0.04 — barely-there resting
 const LERP_ORBS = 0.055;
 const LERP_SPOT = 0.10;
 const LERP_TILT = 0.06; // slower → more cinematic tilt
 
 // Diamond visual config
-const DIAMOND_SIZE   = 270;  // half-diagonal in px (total width = 2×)
-const STRIPE_GAP     = 18;   // px between diagonal stripes inside diamond
-const ORANGE_PRIMARY = "249,115,22";   // orange-500
-const ORANGE_DIM     = "194,65,12";    // orange-800
-const MAX_TILT       = 14;  // degrees — how much the diamond can tilt
+const DIAMOND_SIZE   = 200;  // was 260 — smaller footprint, more air around it
+const STRIPE_GAP     = 22;   // was 18 — fewer stripes, less visual noise
+const ORANGE_PRIMARY = "249,115,22";
+const ORANGE_DIM     = "194,65,12";
+const MAX_TILT       = 10;   // was 14 — subtler tilt response
 
 // ─── Orb layers ───────────────────────────────────────────────────────────────
 
 interface OrbLayer { xMult:number; yMult:number; size:string; color:string; opacity:number; blur:number; }
 
 const ORB_LAYERS: OrbLayer[] = [
-  { xMult:  0.12, yMult:  0.10, size: "80vmax", color: "99,102,241",  opacity: 0.04,  blur: 40 },
-  { xMult:  0.22, yMult:  0.18, size: "55vmax", color: "71,85,105",   opacity: 0.07,  blur: 40 },
-  { xMult: -0.08, yMult: -0.06, size: "45vmax", color: "30,41,59",    opacity: 0.12,  blur: 60 },
+  { xMult:  0.12, yMult:  0.10, size: "80vmax", color: "99,102,241",  opacity: 0.022, blur: 50 },
+  { xMult:  0.22, yMult:  0.18, size: "55vmax", color: "71,85,105",   opacity: 0.04,  blur: 50 },
+  { xMult: -0.08, yMult: -0.06, size: "45vmax", color: "30,41,59",    opacity: 0.07,  blur: 70 },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -181,7 +185,7 @@ export default function HeroBackground() {
         const offset = (i * STRIPE_GAP - S * 2) + ((t * shimmerSpeed * STRIPE_GAP) % STRIPE_GAP);
         // Phase for shimmer: sine wave per stripe
         const phase = Math.sin(t * 0.0008 + i * 0.42) * 0.5 + 0.5; // 0…1
-        const alpha = lerp(0.04, 0.22, phase);
+        const alpha = lerp(0.025, 0.11, phase); // was 0.04–0.22 — much calmer shimmer
         // Color cycles between orange shades
         const colorPhase = Math.sin(t * 0.0005 + i * 0.3) * 0.5 + 0.5;
         const r = Math.round(lerp(194, 249, colorPhase));
@@ -199,7 +203,7 @@ export default function HeroBackground() {
 
       // ── Radial glow at diamond center ──
       const glowPhase = Math.sin(t * 0.0006) * 0.5 + 0.5;
-      const glowAlpha = lerp(0.08, 0.18, glowPhase);
+      const glowAlpha = lerp(0.04, 0.10, glowPhase); // was 0.08–0.18
       const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, S * 0.7);
       glow.addColorStop(0,   `rgba(${ORANGE_PRIMARY},${glowAlpha})`);
       glow.addColorStop(0.5, `rgba(${ORANGE_DIM},${glowAlpha * 0.3})`);
@@ -210,7 +214,8 @@ export default function HeroBackground() {
       // ── Edge fade mask (dark vignette toward diamond border) ──
       const edgeFade = ctx.createRadialGradient(0, 0, S * 0.45, 0, 0, S);
       edgeFade.addColorStop(0, "rgba(0,0,0,0)");
-      edgeFade.addColorStop(1, "rgba(9,9,11,0.72)");
+      edgeFade.addColorStop(0.6, "rgba(9,9,11,0.4)");
+      edgeFade.addColorStop(1, "rgba(9,9,11,0.92)"); // was 0.72 — harder fade to black
       ctx.fillStyle = edgeFade;
       ctx.fillRect(-S, -S, S * 2, S * 2);
 
@@ -222,7 +227,7 @@ export default function HeroBackground() {
       ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
 
       const borderPhase = Math.sin(t * 0.0007) * 0.5 + 0.5;
-      const borderAlpha = lerp(0.25, 0.55, borderPhase);
+      const borderAlpha = lerp(0.15, 0.32, borderPhase); // was 0.25–0.55
 
       // Outer border — orange
       ctx.beginPath();
@@ -257,16 +262,6 @@ export default function HeroBackground() {
         ctx.stroke();
       });
 
-      ctx.restore();
-
-      // ── Outer soft orange glow around the diamond (outside clip) ──────────
-      ctx.save();
-      ctx.translate(cx, cy);
-      const outerGlow = ctx.createRadialGradient(0, 0, S * 0.8, 0, 0, S * 1.5);
-      outerGlow.addColorStop(0, `rgba(${ORANGE_PRIMARY},0.06)`);
-      outerGlow.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.fillStyle = outerGlow;
-      ctx.fillRect(-S * 2, -S * 2, S * 4, S * 4);
       ctx.restore();
     };
 
@@ -338,20 +333,19 @@ export default function HeroBackground() {
             width: layer.size, height: layer.size,
             transform: "translate(-50%,-50%)",
             borderRadius: "50%",
-            background: `radial-gradient(circle at center, rgba(${layer.color},${layer.opacity}) 0%, transparent 70%)`,
+            background: `radial-gradient(circle at center, rgba(${layer.color},${layer.opacity}) 0%, transparent 20%)`,
             filter: `blur(${layer.blur}px)`,
           }}
         />
       ))}
 
       {/* ── Static corner accents ───────────────────────────────────────────── */}
-      <div className="pointer-events-none absolute" style={{ bottom:"-10%",left:"-5%",width:"40vmax",height:"40vmax",borderRadius:"50%",background:"radial-gradient(circle at center,rgba(51,65,85,0.06) 0%,transparent 70%)",filter:"blur(60px)" }} />
-      <div className="pointer-events-none absolute" style={{ top:"-8%",right:"-4%",width:"35vmax",height:"35vmax",borderRadius:"50%",background:"radial-gradient(circle at center,rgba(249,115,22,0.025) 0%,transparent 70%)",filter:"blur(80px)" }} />
+      <div className="pointer-events-none absolute" style={{ bottom:"-10%",left:"-5%",width:"40vmax",height:"40vmax",borderRadius:"50%",background:"radial-gradient(circle at center,rgba(30,41,59,0.05) 0%,transparent 70%)",filter:"blur(80px)" }} />
 
-      {/* ── Vignette ────────────────────────────────────────────────────────── */}
+      {/* ── Vignette — stronger black edges ─────────────────────────────────── */}
       <div
         className="pointer-events-none absolute inset-0"
-        style={{ background:"radial-gradient(ellipse 80% 70% at 50% 50%, transparent 30%, rgba(9,9,11,0.75) 100%)" }}
+        style={{ background:"radial-gradient(ellipse 75% 65% at 50% 50%, transparent 20%, rgba(9,9,11,0.88) 100%)" }}
       />
 
       {/* ── Bottom hairline ─────────────────────────────────────────────────── */}
