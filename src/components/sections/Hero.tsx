@@ -1,12 +1,11 @@
 "use client";
 
 import { motion, type Variants } from "framer-motion";
-import type { ReactNode } from "react";
+import { useEffect, useRef } from "react";
+import Container from "@/components/layout/Container";
 
 // ─── Animation variants ───────────────────────────────────────────────────────
 
-// Typed as const tuple — prevents TS from widening to number[], which breaks
-// Framer Motion's EasingDefinition inference for cubic-bezier arrays.
 const EASE_OUT_EXPO = [0.22, 1, 0.36, 1] as const;
 
 const container: Variants = {
@@ -31,71 +30,144 @@ const item: Variants = {
   },
 };
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── RaycastBadge ─────────────────────────────────────────────────────────────
+// Orange neon ring via box-shadow (single, no double border).
+// White spark travels the perimeter via SVG stroke-dashoffset animation.
+// Three SVG layers: diffused halo, tight core trail, white-hot spark head.
 
-// ── RaycastBadge ─────────────────────────────────────────────────────────────
-// The border-beam effect works in three layers (all inside overflow-hidden):
-//   1. Rotating conic-gradient div (large enough to reach the pill edges)
-//   2. Inset dark fill that covers the center, revealing only the border ring
-//   3. Text content on top (z-10)
+function RaycastBadge({
+  leftText,
+}: {
+  leftText: string;
+}) {
+  const pillRef = useRef<HTMLDivElement>(null);
 
-const BADGE_CSS = `
-@keyframes raycast-rotate {
-  to { transform: translate(-50%, -50%) rotate(360deg); }
-}
-.raycast-beam {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  /* Oversized so the conic tip reaches all pill edges */
-  width: 220%;
-  height: 600%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    rgba(249,115,22,0.0) 50deg,
-    rgba(249,115,22,0.55) 100deg,
-    rgba(249,115,22,0.0) 160deg,
-    transparent 360deg
-  );
-  animation: raycast-rotate 3s linear infinite;
-}
-`;
+  useEffect(() => {
+    const pill = pillRef.current;
+    if (!pill) return;
 
-function RaycastBadge({ label }: { label: string }) {
+    function buildSVG() {
+      if (!pill) return;
+      const old = pill.querySelector("svg");
+      if (old) old.remove();
+
+      const W = pill.offsetWidth;
+      const H = pill.offsetHeight;
+      const r = H / 2;
+      const perim = Math.PI * 2 * r + 2 * (W - 2 * r);
+
+      const SPARK       = perim * 0.011;
+      const SPARK_GAP   = perim - SPARK;
+      const TRAIL       = perim * 0.08;
+      const TRAIL_GAP   = perim - TRAIL;
+      const DUR         = (perim / 160).toFixed(2) + "s";
+      const SPARK_OFFSET = -(TRAIL * 0.88);
+
+      const path = [
+        `M ${W / 2} 0`,
+        `L ${W - r} 0`,
+        `A ${r} ${r} 0 0 1 ${W - r} ${H}`,
+        `L ${r} ${H}`,
+        `A ${r} ${r} 0 0 1 ${r} 0`,
+        `Z`,
+      ].join(" ");
+
+      const ns = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(ns, "svg");
+      svg.style.cssText =
+        "position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2;";
+      svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+      svg.setAttribute("aria-hidden", "true");
+
+      svg.innerHTML = `
+        <defs>
+          <filter id="rp-white-halo" x="-200%" y="-200%" width="500%" height="500%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3"  result="b1"/>
+            <feGaussianBlur in="SourceGraphic" stdDeviation="6"  result="b2"/>
+            <feMerge>
+              <feMergeNode in="b2"/>
+              <feMergeNode in="b1"/>
+            </feMerge>
+          </filter>
+          <filter id="rp-spark-glow" x="-200%" y="-200%" width="500%" height="500%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="b1"/>
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="b2"/>
+            <feMerge>
+              <feMergeNode in="b2"/>
+              <feMergeNode in="b1"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+
+        <!-- Diffused white halo trail -->
+        <path d="${path}" fill="none"
+          stroke="rgba(255,255,255,0.16)" stroke-width="3" stroke-linecap="round"
+          filter="url(#rp-white-halo)"
+          pathLength="${perim}"
+          stroke-dasharray="${TRAIL} ${TRAIL_GAP}"
+          stroke-dashoffset="0">
+          <animate attributeName="stroke-dashoffset"
+            from="0" to="${-perim}"
+            dur="${DUR}" repeatCount="indefinite" calcMode="linear"/>
+        </path>
+
+        <!-- White core trail -->
+        <path d="${path}" fill="none"
+          stroke="rgba(255,255,255,0.65)" stroke-width="1" stroke-linecap="round"
+          pathLength="${perim}"
+          stroke-dasharray="${TRAIL} ${TRAIL_GAP}"
+          stroke-dashoffset="0">
+          <animate attributeName="stroke-dashoffset"
+            from="0" to="${-perim}"
+            dur="${DUR}" repeatCount="indefinite" calcMode="linear"/>
+        </path>
+
+        <!-- White-hot spark head -->
+        <path d="${path}" fill="none"
+          stroke="rgba(255,255,255,0.95)" stroke-width="2" stroke-linecap="round"
+          filter="url(#rp-spark-glow)"
+          pathLength="${perim}"
+          stroke-dasharray="${SPARK} ${SPARK_GAP}"
+          stroke-dashoffset="${SPARK_OFFSET}">
+          <animate attributeName="stroke-dashoffset"
+            from="${SPARK_OFFSET}"
+            to="${-(perim + Math.abs(SPARK_OFFSET))}"
+            dur="${DUR}" repeatCount="indefinite" calcMode="linear"/>
+        </path>
+      `;
+
+      pill.appendChild(svg);
+    }
+
+    buildSVG();
+    window.addEventListener("resize", buildSVG, { passive: true });
+    return () => window.removeEventListener("resize", buildSVG);
+  }, []);
+
   return (
-    <>
-      {/* Inject keyframe once — safe because it is idempotent in the browser */}
-      <style>{BADGE_CSS}</style>
-
-      {/*
-        Outer shell: overflow-hidden clips the rotating beam to the pill shape.
-        The 1px transparent border is overridden visually by the beam shining
-        through, but keeps layout consistent and aids border-radius rendering.
-      */}
-      <div className="relative inline-flex items-center overflow-hidden rounded-full px-[1px] py-[1px]">
-
-        {/* Layer 1 — rotating conic beam */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-          <div className="raycast-beam" />
-        </div>
-
-        {/* Layer 2 — inner dark fill: punches a hole in the center so only
-            the narrow ring at the pill border stays lit */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-[1px] rounded-full"
-          style={{ background: "rgba(7,8,10,0.82)", backdropFilter: "blur(12px)" }}
-        />
-
-        {/* Layer 3 — text */}
-        <span className="relative z-10 px-5 py-2 text-sm font-medium tracking-wide text-zinc-300">
-          {label}
-        </span>
-      </div>
-    </>
+    <div
+      ref={pillRef}
+      className="relative inline-flex items-center rounded-full bg-[rgba(9,9,11,0.93)]"
+      style={{
+        boxShadow: [
+          "0 0 0 1px rgba(249,115,22,0.50)",
+          "0 0 7px 1px rgba(249,115,22,0.25)",
+          "0 0 16px 2px rgba(249,115,22,0.10)",
+        ].join(", "),
+      }}
+    >
+      <span
+        className="relative z-10 font-mono text-[11px] font-medium tracking-[0.02em] whitespace-nowrap text-orange-500/85"
+        style={{ padding: "3px 14px" }}
+      >
+        {leftText}
+      </span>
+    </div>
   );
 }
+
+// ─── HairlineDivider ──────────────────────────────────────────────────────────
 
 function HairlineDivider() {
   return (
@@ -116,81 +188,79 @@ export default function Hero() {
   return (
     <section
       aria-label="Introducción"
-      className="relative min-h-svh flex items-center pt-32 px-6 sm:px-10 md:px-16 lg:px-24"
+      className="relative min-h-svh flex items-center pt-32"
     >
-      <motion.div
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className="w-full max-w-2xl flex flex-col gap-6 md:gap-7"
-      >
-        {/* ── Role badge — border-beam pill ── */}
-        <motion.div variants={item}>
-          <RaycastBadge label="Software Developer" />
-        </motion.div>
-
-        {/* ── Name — split into two lines for hierarchy ── */}
-        <motion.div variants={item} className="flex flex-col gap-1">
-          <h1 className="font-sans font-bold leading-[1.05] tracking-tight text-5xl sm:text-6xl md:text-7xl text-zinc-50">
-            Juan Pablo
-          </h1>
-          {/* Muted second line — same tag intentional: one semantic heading, two visual lines */}
-          <p
-            aria-hidden="true"
-            className="font-sans font-bold leading-[1.05] tracking-tight text-5xl sm:text-6xl md:text-7xl text-zinc-400"
-          >
-            Desarrollador.
-          </p>
-        </motion.div>
-
-        {/* ── Divider ── */}
-        <motion.div variants={item}>
-          <HairlineDivider />
-        </motion.div>
-
-        {/* ── Description ── */}
-        <motion.p
-          variants={item}
-          className="font-sans text-base sm:text-lg leading-relaxed text-zinc-400 max-w-md"
-        >
-          Construyo interfaces y sistemas que priorizan la claridad, el
-          rendimiento y los detalles que marcan la diferencia. Enfocado en
-          productos modernos con intención.
-        </motion.p>
-
-        {/* ── CTAs ── */}
-        <motion.div variants={item} className="flex items-center gap-4 pt-1">
-          <a
-            href="#projects"
-            className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium text-zinc-950 bg-zinc-50 hover:bg-white transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
-          >
-            Ver proyectos
-    
-          </a>
-
-          <a
-            href="#contact"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-400 hover:text-zinc-100 transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 rounded"
-          >
-            Contacto
-          </a>
-        </motion.div>
-
-        {/* ── Social / availability row ── */}
+      <Container>
         <motion.div
-          variants={item}
-          className="flex items-center gap-5 pt-2 border-t border-zinc-800/60"
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="w-full max-w-2xl flex flex-col gap-6 md:gap-7"
         >
-          <span className="ml-auto flex items-center gap-1.5 text-xs text-zinc-500">
-            <span
+          {/* ── Role badge ── */}
+          <motion.div variants={item}>
+            <RaycastBadge leftText="Software Developer"/>
+          </motion.div>
+
+          {/* ── Name ── */}
+          <motion.div variants={item} className="flex flex-col gap-1">
+            <h1 className="font-sans font-bold leading-[1.05] tracking-tight text-5xl sm:text-6xl md:text-7xl text-zinc-50">
+              Juan Pablo
+            </h1>
+            <p
               aria-hidden="true"
-              className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"
-            />
-            Disponible para proyectos
-          </span>
+              className="font-sans font-bold leading-[1.05] tracking-tight text-5xl sm:text-6xl md:text-7xl text-zinc-400"
+            >
+              Urrego
+            </p>
+          </motion.div>
+
+          {/* ── Divider ── */}
+          <motion.div variants={item}>
+            <HairlineDivider />
+          </motion.div>
+
+          {/* ── Description ── */}
+          <motion.p
+            variants={item}
+            className="font-sans text-base sm:text-lg leading-relaxed text-zinc-400 max-w-md"
+          >
+            Construyo interfaces y sistemas que priorizan la claridad, el
+            rendimiento y los detalles que marcan la diferencia. Enfocado en
+            productos modernos con intención.
+          </motion.p>
+
+          {/* ── CTAs ── */}
+          <motion.div variants={item} className="flex items-center gap-4 pt-1">
+            <a
+              href="#projects"
+              className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium text-zinc-950 bg-zinc-50 hover:bg-white transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
+            >
+              Ver proyectos
+            </a>
+            <a
+              href="#contact"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-400 hover:text-zinc-100 transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 rounded"
+            >
+              Contacto
+            </a>
+          </motion.div>
+
+          {/* ── Availability row ── */}
+          <motion.div
+            variants={item}
+            className="flex items-center gap-5 pt-2 border-t border-zinc-800/60"
+          >
+            <span className="ml-auto flex items-center gap-1.5 text-xs text-zinc-500">
+              <span
+                aria-hidden="true"
+                className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"
+              />
+              Disponible para proyectos
+            </span>
+          </motion.div>
         </motion.div>
-      </motion.div>
+      </Container>
     </section>
   );
 }
-

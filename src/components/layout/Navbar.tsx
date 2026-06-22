@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FaGithub, FaLinkedin } from "react-icons/fa6";
 import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import Container from "@/components/layout/Container";
 
 
 const links = [
@@ -15,7 +16,8 @@ const links = [
 
 export default function Navbar() {
   return (
-    <header className="fixed top-4 left-1/2 z-50 w-full max-w-5xl -translate-x-1/2">
+    <header className="fixed top-4 left-0 right-0 z-50">
+      <Container>
       <nav className="
           flex items-center
           px-6 py-2
@@ -124,6 +126,7 @@ export default function Navbar() {
           </div>
 
       </nav>
+      </Container>
     </header>
 
   );
