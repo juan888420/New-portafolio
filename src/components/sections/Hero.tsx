@@ -35,35 +35,33 @@ const item: Variants = {
 // White spark travels the perimeter via SVG stroke-dashoffset animation.
 // Three SVG layers: diffused halo, tight core trail, white-hot spark head.
 
-function RaycastBadge({
-  leftText,
-}: {
-  leftText: string;
-}) {
-  const pillRef = useRef<HTMLDivElement>(null);
+function RaycastBadge({ leftText }: { leftText: string }) {
+  const pillRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const pill = pillRef.current;
     if (!pill) return;
 
-    function buildSVG() {
-      if (!pill) return;
-      const old = pill.querySelector("svg");
-      if (old) old.remove();
+    const NS = "http://www.w3.org/2000/svg";
 
-      const W = pill.offsetWidth;
-      const H = pill.offsetHeight;
+    const build = () => {
+      pill.querySelector("svg[data-spark]")?.remove();
+
+      const w = pill.offsetWidth;
+      const h = pill.offsetHeight;
+      if (!w || !h) return;
+
+      // Offset hacia afuera para que el trazo se centre sobre el ring naranja (1px fuera).
+      // Dentro de build(), reemplaza el bloque del SVG por esto:
+
+      const O = 1;
+      const W = w + O * 2;
+      const H = h + O * 2;
       const r = H / 2;
       const perim = Math.PI * 2 * r + 2 * (W - 2 * r);
 
-      const SPARK       = perim * 0.011;
-      const SPARK_GAP   = perim - SPARK;
-      const TRAIL       = perim * 0.08;
-      const TRAIL_GAP   = perim - TRAIL;
-      const DUR         = (perim / 160).toFixed(2) + "s";
-      const SPARK_OFFSET = -(TRAIL * 0.88);
-
-      const path = [
+      // Path en coords 0..W / 0..H (sin offsets negativos)
+      const d = [
         `M ${W / 2} 0`,
         `L ${W - r} 0`,
         `A ${r} ${r} 0 0 1 ${W - r} ${H}`,
@@ -72,97 +70,87 @@ function RaycastBadge({
         `Z`,
       ].join(" ");
 
-      const ns = "http://www.w3.org/2000/svg";
-      const svg = document.createElementNS(ns, "svg");
-      svg.style.cssText =
-        "position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2;";
+      const HEAD = Math.max(2, perim * 0.012);
+      const HALO = perim * 0.09;
+      const DUR  = (perim / 170).toFixed(2) + "s";
+
+      const svg = document.createElementNS(NS, "svg");
+      svg.setAttribute("data-spark", "");
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+      svg.setAttribute("preserveAspectRatio", "none"); // opcional; con pill height-based no distorsiona
       svg.setAttribute("aria-hidden", "true");
+      // 👇 Clave: el SVG se extiende O px hacia afuera en los 4 lados
+      svg.style.cssText =
+        `position:absolute;left:-${O}px;top:-${O}px;` +
+        `width:calc(100% + ${O * 2}px);height:calc(100% + ${O * 2}px);` +
+        `overflow:visible;pointer-events:none;z-index:2;`;
+
 
       svg.innerHTML = `
         <defs>
-          <filter id="rp-white-halo" x="-200%" y="-200%" width="500%" height="500%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="3"  result="b1"/>
-            <feGaussianBlur in="SourceGraphic" stdDeviation="6"  result="b2"/>
-            <feMerge>
-              <feMergeNode in="b2"/>
-              <feMergeNode in="b1"/>
-            </feMerge>
+          <filter id="spark-blur" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="1.4" />
           </filter>
-          <filter id="rp-spark-glow" x="-200%" y="-200%" width="500%" height="500%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="b1"/>
-            <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="b2"/>
-            <feMerge>
-              <feMergeNode in="b2"/>
-              <feMergeNode in="b1"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
+          <filter id="spark-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2.6" />
           </filter>
         </defs>
 
-        <!-- Diffused white halo trail -->
-        <path d="${path}" fill="none"
-          stroke="rgba(255,255,255,0.16)" stroke-width="3" stroke-linecap="round"
-          filter="url(#rp-white-halo)"
-          pathLength="${perim}"
-          stroke-dasharray="${TRAIL} ${TRAIL_GAP}"
-          stroke-dashoffset="0">
+        <path
+          d="${d}"
+          fill="none"
+          stroke="rgba(255,255,255,0.55)"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-dasharray="${HALO} ${perim - HALO}"
+          filter="url(#spark-glow)"
+        >
           <animate attributeName="stroke-dashoffset"
-            from="0" to="${-perim}"
-            dur="${DUR}" repeatCount="indefinite" calcMode="linear"/>
+            from="0" to="${-perim}" dur="${DUR}" repeatCount="indefinite" />
         </path>
 
-        <!-- White core trail -->
-        <path d="${path}" fill="none"
-          stroke="rgba(255,255,255,0.65)" stroke-width="1" stroke-linecap="round"
-          pathLength="${perim}"
-          stroke-dasharray="${TRAIL} ${TRAIL_GAP}"
-          stroke-dashoffset="0">
+        <path
+          d="${d}"
+          fill="none"
+          stroke="#ffffff"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-dasharray="${HEAD} ${perim - HEAD}"
+          stroke-dashoffset="${-(HALO * 0.85)}"
+          filter="url(#spark-blur)"
+        >
           <animate attributeName="stroke-dashoffset"
-            from="0" to="${-perim}"
-            dur="${DUR}" repeatCount="indefinite" calcMode="linear"/>
-        </path>
-
-        <!-- White-hot spark head -->
-        <path d="${path}" fill="none"
-          stroke="rgba(255,255,255,0.95)" stroke-width="2" stroke-linecap="round"
-          filter="url(#rp-spark-glow)"
-          pathLength="${perim}"
-          stroke-dasharray="${SPARK} ${SPARK_GAP}"
-          stroke-dashoffset="${SPARK_OFFSET}">
-          <animate attributeName="stroke-dashoffset"
-            from="${SPARK_OFFSET}"
-            to="${-(perim + Math.abs(SPARK_OFFSET))}"
-            dur="${DUR}" repeatCount="indefinite" calcMode="linear"/>
+            from="${-(HALO * 0.85)}"
+            to="${-(perim + HALO * 0.85)}"
+            dur="${DUR}" repeatCount="indefinite" />
         </path>
       `;
 
       pill.appendChild(svg);
-    }
+    };
 
-    buildSVG();
-    window.addEventListener("resize", buildSVG, { passive: true });
-    return () => window.removeEventListener("resize", buildSVG);
+    build();
+    const ro = new ResizeObserver(build);
+    ro.observe(pill);
+    return () => ro.disconnect();
   }, []);
 
   return (
     <div
       ref={pillRef}
-      className="relative inline-flex items-center rounded-full bg-[rgba(9,9,11,0.93)]"
+      className="relative inline-flex items-center rounded-full px-4 py-1.5 text-xs font-medium tracking-wide text-white/90"
       style={{
+        background: "rgba(255,255,255,0.02)",
+        backdropFilter: "blur(6px)",
         boxShadow: [
-          "0 0 0 1px rgba(249,115,22,0.50)",
-          "0 0 7px 1px rgba(249,115,22,0.25)",
-          "0 0 16px 2px rgba(249,115,22,0.10)",
+          "0 0 0 1px rgba(249,115,22,0.95)",
+          "0 0 8px rgba(249,115,22,0.55)",
+          "0 0 18px 2px rgba(249,115,22,0.30)",
+          "inset 0 0 0 1px rgba(255,255,255,0.04)",
         ].join(", "),
       }}
     >
-      <span
-        className="relative z-10 font-mono text-[11px] font-medium tracking-[0.02em] whitespace-nowrap text-orange-500/85"
-        style={{ padding: "3px 14px" }}
-      >
-        {leftText}
-      </span>
+      <span className="relative z-[3]">{leftText}</span>
     </div>
   );
 }
