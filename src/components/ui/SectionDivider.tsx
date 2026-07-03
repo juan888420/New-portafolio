@@ -74,16 +74,12 @@ export default function SectionDivider({ label = "JP" }: SectionDividerProps) {
       <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-[#f97316]/30" />
 
       {/* ── Capsule ─────────────────────────────────────────────────────── */}
-      <div className="relative mx-6 flex-shrink-0">
-        {/* Glow — extremely subtle, far spread */}
-        <div className="absolute inset-0 -m-4 rounded-full bg-[#f97316]/8 blur-2xl" />
-
         {/* Glass capsule */}
-        <div className="relative rounded-full border border-white/10 bg-black/50 px-6 py-2 backdrop-blur-xl">
-          <span className="text-xs font-semibold tracking-[0.4em] text-[#f97316] uppercase select-none">
-            {label}
-          </span>
-        </div>
+      {/* ── Center label ─────────────────────────────────────────────────── */}
+      <div className="relative mx-8 flex-shrink-0">
+        <span className="relative text-xs font-semibold tracking-[0.45em] text-[#f97316] uppercase select-none">
+          {label}
+        </span>
       </div>
 
       {/* ── Right line ──────────────────────────────────────────────────── */}

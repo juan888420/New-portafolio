@@ -9,12 +9,16 @@ export default function Home() {
   return (
     <main>
       <Navbar />
-      <HeroBackground />
-      <Hero />
-      <SectionDivider />
-      <Skills />
+      <div className="relative"> 
+        <HeroBackground />
+         <Hero /> 
+      </div> 
+      <div className="h-48 lg:h-64 bg-[#09090b]" aria-hidden="true" />
       <SectionDivider label="PROJECTS" />
       <Projects />
+      <SectionDivider label="SKILLS" />
+      <Skills />
+      <SectionDivider label="CONTACT" />
     </main>
   );
 }

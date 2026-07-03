@@ -99,7 +99,7 @@ const itemVariants = {
 
 export default function Projects() {
   return (
-    <section className="bg-[#0a0a0c] py-28 sm:py-36">
+    <section className="bg-[#09090b] py-28 sm:py-36">
       <Container>
         {/* Heading */}
         <motion.div
