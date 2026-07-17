@@ -1,11 +1,8 @@
 "use client";
 
-// Design read: developer portfolio for design-conscious recruiters + clients,
-// dark-tech / Raycast-inspired aesthetic, Tailwind v4, motion/react.
-// Dials: DESIGN_VARIANCE: 7 / MOTION_INTENSITY: 5 / VISUAL_DENSITY: 4
-
+import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowUpRight, GithubLogo, ArrowRight } from "@phosphor-icons/react";
+import { ArrowUpRight, GithubLogo } from "@phosphor-icons/react";
 import Container from "@/components/layout/Container";
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -18,7 +15,7 @@ interface Project {
   tagline: string;
   description: string;
   stack: string[];
-  image: string;          // picsum.photos/seed/{slug}/{w}/{h}
+  image: string;          // screenshot under /public
   liveUrl?: string;
   githubUrl?: string;
   accent: string;         // RGB triplet for accent stripe
@@ -31,12 +28,11 @@ interface Project {
 const FEATURED: Project = {
   slug:        "AI-OS",
   title:       "AI-OS",
-  tagline:     "A conversational AI platform for businesses.",
+  tagline:     "Plataforma de IA conversacional para negocios.",
   description:
-    "Real-time chat assistant powered by the Claude API, with reactive queries and persistent per-customer history backed by Convex. Built as a strict-TypeScript MVP with a live demo landing page; WhatsApp, CRM and scheduling integrations are on the roadmap.",
+    "Asistente de chat en tiempo real impulsado por la Claude API, con queries reactivas e historial persistente por cliente sobre Convex. MVP en TypeScript estricto con landing de demo en vivo; integraciones con WhatsApp, CRM y agendamiento en el roadmap.",
   stack:       ["React", "TypeScript", "Vite", "Convex", "Claude API"],
   image:       "/ai-os.png",
-  liveUrl:     "#",
   githubUrl:   "https://github.com/juan888420/ai-os",
   accent:      "94 234 212",
 };
@@ -45,9 +41,9 @@ const SECONDARY: Project[] = [
   {
     slug:        "MediReserva",
     title:       "MediReserva",
-    tagline:     "Book a doctor's appointment in minutes.",
+    tagline:     "Tu cita médica, a un clic.",
     description:
-      "Patients pick a doctor, an available slot and pay through PayPal; doctors log in to see their confirmed appointments. Supabase handles auth and row-level security, with atomic stored procedures preventing double-booking and Resend sending confirmation emails.",
+      "Los pacientes eligen médico, horario disponible y pagan con PayPal; los médicos inician sesión para ver sus citas confirmadas. Supabase maneja auth y row-level security, con procedimientos atómicos que evitan el doble agendamiento y Resend enviando los correos de confirmación.",
     stack:       ["Next.js", "Supabase", "PayPal", "Resend", "Tailwind"],
     image:       "/medirerva.png",
     liveUrl:     "https://reservas-project-production.up.railway.app/",
@@ -57,23 +53,23 @@ const SECONDARY: Project[] = [
   {
     slug:        "Job-Tracker",
     title:       "Job-Tracker",
-    tagline:     "Track every job application in one place.",
+    tagline:     "Todas tus postulaciones en un solo lugar.",
     description:
-      "A SaaS dashboard for managing job applications: full CRUD, filtering, status tracking and stats charts, behind JWT-protected routes. Express and Prisma power the API while React Query keeps the client in sync.",
+      "Dashboard SaaS para gestionar postulaciones de empleo: CRUD completo, filtros, seguimiento de estados y gráficas de estadísticas, detrás de rutas protegidas con JWT. Express y Prisma impulsan la API mientras React Query mantiene el cliente sincronizado.",
     stack:       ["React", "Vite", "Express", "Prisma", "PostgreSQL"],
-    image:       "https://picsum.photos/seed/shelf-library-books-dark/800/600",
+    image:       "/job-tracker.png",
     githubUrl:   "https://github.com/juan888420/job-tracker",
     accent:      "167 139 250",
   },
   {
     slug:        "MistherBarber",
     title:       "MistherBarber",
-    tagline:     "A modern web presence for a barbershop.",
+    tagline:     "Presencia web moderna para una barbería.",
     description:
-      "Marketing site for a barbershop brand: services, styling and booking information in a clean, image-driven layout. Built with Svelte and deployed on Vercel.",
+      "Sitio de marketing para una marca de barbería: servicios, estilo e información de reservas en un layout limpio y visual. Construido con Svelte y desplegado en Vercel.",
     stack:       ["Svelte", "Tailwind", "Vercel"],
     image:       "/misther_barber.png",
-    liveUrl:     "https://misther-baber-dqv2vebj2-juan-pablo-s-projects17.vercel.app/",
+    liveUrl:     "https://misther-baber.vercel.app/",
     githubUrl:   "https://github.com/juan888420/Misther_Baber",
     accent:      "212 175 55",
   },
@@ -144,25 +140,6 @@ export default function Projects() {
           ))}
         </motion.div>
 
-        {/* CTA */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.5 }}
-          variants={itemVariants}
-          className="mt-12 flex"
-        >
-          <a
-            href="/work"
-            className="group inline-flex items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.04] px-5 py-2.5 text-[14px] font-medium text-[#a1a1aa] transition-colors duration-200 hover:border-white/[0.2] hover:text-[#f4f4f5]"
-          >
-            Ver todos los proyectos
-            <ArrowRight
-              weight="regular"
-              className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
-            />
-          </a>
-        </motion.div>
       </Container>
     </section>
   );
@@ -223,7 +200,7 @@ function FeaturedCard({ project }: { project: Project }) {
                 href={project.liveUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group/btn inline-flex items-center gap-1.5 rounded-full border border-[rgb(var(--accent)/0.35)] bg-[rgb(var(--accent)/0.1)] px-4 py-2 text-[13px] font-medium text-[rgb(var(--accent))] transition-colors duration-200 hover:bg-[rgb(var(--accent)/0.18)]"
+                className="group/btn inline-flex items-center gap-1.5 rounded-full border border-[rgb(var(--accent)/0.35)] bg-[rgb(var(--accent)/0.1)] px-4 py-2 text-[13px] font-medium text-[rgb(var(--accent))] outline-none transition-colors duration-200 hover:bg-[rgb(var(--accent)/0.18)] focus-visible:ring-2 focus-visible:ring-[rgb(var(--accent)/0.6)]"
               >
                 Ver proyecto
                 <ArrowUpRight weight="bold" className="h-3.5 w-3.5" />
@@ -234,7 +211,7 @@ function FeaturedCard({ project }: { project: Project }) {
                 href={project.githubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] px-4 py-2 text-[13px] font-medium text-[#a1a1aa] transition-colors duration-200 hover:border-white/[0.2] hover:text-[#f4f4f5]"
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] px-4 py-2 text-[13px] font-medium text-[#a1a1aa] outline-none transition-colors duration-200 hover:border-white/[0.2] hover:text-[#f4f4f5] focus-visible:ring-2 focus-visible:ring-white/40"
               >
                 <GithubLogo weight="fill" className="h-4 w-4" />
                 GitHub
@@ -246,10 +223,12 @@ function FeaturedCard({ project }: { project: Project }) {
 
       {/* Right - image panel */}
       <div className="relative min-h-[280px] overflow-hidden bg-[#0a0a0c] lg:min-h-0">
-        <img
+        <Image
           src={project.image}
-          alt={project.title}
-          className="h-full w-full object-contain object-center p-3 transition-transform duration-700 group-hover:scale-[1.02] sm:p-5"
+          alt={`Captura de pantalla de ${project.title}`}
+          fill
+          sizes="(max-width: 1024px) 100vw, 55vw"
+          className="object-contain object-center p-3 transition-transform duration-700 group-hover:scale-[1.02] sm:p-5"
         />
         {/* Inner edge fade toward content panel */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#0d0d10] via-transparent to-transparent lg:from-[#0d0d10]/60" />
@@ -273,10 +252,12 @@ function SecondaryCard({ project }: { project: Project }) {
     >
       {/* Image */}
       <div className="relative h-44 overflow-hidden bg-[#0a0a0c]">
-        <img
+        <Image
           src={project.image}
-          alt={project.title}
-          className="h-full w-full object-contain object-center p-2.5 transition-transform duration-700 group-hover:scale-[1.03]"
+          alt={`Captura de pantalla de ${project.title}`}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-contain object-center p-2.5 transition-transform duration-700 group-hover:scale-[1.03]"
         />
         {/* Scrim */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d10] via-[#0d0d10]/30 to-transparent" />
@@ -306,11 +287,11 @@ function SecondaryCard({ project }: { project: Project }) {
 
         <div className="mt-5 space-y-4">
           {/* Stack chips */}
-          <div className="flex flex-nowrap gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex flex-wrap gap-1.5">
             {project.stack.map((tech) => (
               <span
                 key={tech}
-                className="shrink-0 whitespace-nowrap rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1 font-mono text-[11px] tracking-wide text-[#8a8a93]"
+                className="whitespace-nowrap rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1 font-mono text-[11px] tracking-wide text-[#8a8a93]"
               >
                 {tech}
               </span>
@@ -327,7 +308,7 @@ function SecondaryCard({ project }: { project: Project }) {
                 href={project.liveUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group/btn inline-flex items-center gap-1.5 rounded-full border border-[rgb(var(--accent)/0.35)] bg-[rgb(var(--accent)/0.1)] px-4 py-2 text-[13px] font-medium text-[rgb(var(--accent))] transition-colors duration-200 hover:bg-[rgb(var(--accent)/0.18)]"
+                className="group/btn inline-flex items-center gap-1.5 rounded-full border border-[rgb(var(--accent)/0.35)] bg-[rgb(var(--accent)/0.1)] px-4 py-2 text-[13px] font-medium text-[rgb(var(--accent))] outline-none transition-colors duration-200 hover:bg-[rgb(var(--accent)/0.18)] focus-visible:ring-2 focus-visible:ring-[rgb(var(--accent)/0.6)]"
               >
                 Ver proyecto
                 <ArrowUpRight weight="bold" className="h-3.5 w-3.5" />
@@ -338,7 +319,7 @@ function SecondaryCard({ project }: { project: Project }) {
                 href={project.githubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] px-4 py-2 text-[13px] font-medium text-[#a1a1aa] transition-colors duration-200 hover:border-white/[0.2] hover:text-[#f4f4f5]"
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] px-4 py-2 text-[13px] font-medium text-[#a1a1aa] outline-none transition-colors duration-200 hover:border-white/[0.2] hover:text-[#f4f4f5] focus-visible:ring-2 focus-visible:ring-white/40"
               >
                 <GithubLogo weight="fill" className="h-4 w-4" />
                 GitHub
