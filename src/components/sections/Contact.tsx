@@ -98,9 +98,7 @@ function AnimatedEnvelope() {
 function EmailButton() {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(EMAIL);
       setCopied(true);
@@ -111,29 +109,32 @@ function EmailButton() {
   };
 
   return (
-    <a
-      href={`mailto:${EMAIL}`}
-      className="group relative inline-flex items-center gap-3 overflow-hidden rounded-full border border-white/10 bg-black/50 py-3 pl-6 pr-3 backdrop-blur-xl transition-colors duration-300 hover:border-[#f97316]/40"
-    >
+    <div className="group relative inline-flex items-center gap-3 overflow-hidden rounded-full border border-white/10 bg-black/50 py-3 pl-6 pr-3 backdrop-blur-xl transition-colors duration-300 hover:border-[#f97316]/40">
       {/* Sheen metálico que recorre el botón en hover */}
       <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/[0.07] to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
 
-      {/* Punto de disponibilidad */}
-      <motion.span
-        className="h-1.5 w-1.5 rounded-full bg-[#f97316]"
-        animate={{ opacity: [1, 0.35, 1] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-      />
+      {/* Acción principal: mailto — cubre punto + correo */}
+      <a
+        href={`mailto:${EMAIL}`}
+        className="flex items-center gap-3 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#f97316]/50"
+      >
+        {/* Punto de disponibilidad */}
+        <motion.span
+          className="h-1.5 w-1.5 rounded-full bg-[#f97316]"
+          animate={{ opacity: [1, 0.35, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        />
 
-      <span className="font-mono text-[13px] tracking-wide text-[#e4e4e7] transition-colors duration-200 group-hover:text-white sm:text-sm">
-        {EMAIL}
-      </span>
+        <span className="font-mono text-[13px] tracking-wide text-[#e4e4e7] transition-colors duration-200 group-hover:text-white sm:text-sm">
+          {EMAIL}
+        </span>
+      </a>
 
       {/* Acción secundaria: copiar */}
       <button
         onClick={handleCopy}
         aria-label={copied ? "Correo copiado" : "Copiar correo"}
-        className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] text-[#8a8a93] transition-colors duration-200 hover:border-[#f97316]/40 hover:text-[#f97316]"
+        className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] text-[#8a8a93] outline-none transition-colors duration-200 hover:border-[#f97316]/40 hover:text-[#f97316] focus-visible:ring-2 focus-visible:ring-[#f97316]/50"
       >
         {copied ? (
           <Check weight="bold" className="h-4 w-4 text-[#f97316]" />
@@ -141,7 +142,7 @@ function EmailButton() {
           <Copy weight="regular" className="h-4 w-4" />
         )}
       </button>
-    </a>
+    </div>
   );
 }
 
