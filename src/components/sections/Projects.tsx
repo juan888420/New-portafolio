@@ -31,10 +31,10 @@ interface Project {
 const FEATURED: Project = {
   slug:        "AI-OS",
   title:       "AI-OS",
-  tagline:     "An AI operating system for your business.",
+  tagline:     "A conversational AI platform for businesses.",
   description:
-    "A conversational assistant that understands your business, replies to customers and executes real actions. Connects WhatsApp, Gmail, Google Calendar and CRM into a single live control panel. No complex setup.",
-  stack:       ["Next.js", "TypeScript", "Claude API", "Supabase", "Tailwind"],
+    "Real-time chat assistant powered by the Claude API, with reactive queries and persistent per-customer history backed by Convex. Built as a strict-TypeScript MVP with a live demo landing page; WhatsApp, CRM and scheduling integrations are on the roadmap.",
+  stack:       ["React", "TypeScript", "Vite", "Convex", "Claude API"],
   image:       "/ai-os.png",
   liveUrl:     "#",
   githubUrl:   "https://github.com/juan888420/ai-os",
@@ -45,10 +45,10 @@ const SECONDARY: Project[] = [
   {
     slug:        "MediReserva",
     title:       "MediReserva",
-    tagline:     "Automation for dental clinics.",
+    tagline:     "Book a doctor's appointment in minutes.",
     description:
-      "WhatsApp-native appointment system with AI triage and automatic follow-ups. Connects n8n, Supabase, and Manychat into a single workflow that saves the front desk two hours a day.",
-    stack:       ["n8n", "Supabase", "Claude API", "Manychat"],
+      "Patients pick a doctor, an available slot and pay through PayPal; doctors log in to see their confirmed appointments. Supabase handles auth and row-level security, with atomic stored procedures preventing double-booking and Resend sending confirmation emails.",
+    stack:       ["Next.js", "Supabase", "PayPal", "Resend", "Tailwind"],
     image:       "/medirerva.png",
     liveUrl:     "https://reservas-project-production.up.railway.app/",
     githubUrl:   "https://github.com/juan888420/Reservas-project",
@@ -57,10 +57,10 @@ const SECONDARY: Project[] = [
   {
     slug:        "Job-Tracker",
     title:       "Job-Tracker",
-    tagline:     "Your knowledge base, searchable by meaning.",
+    tagline:     "Track every job application in one place.",
     description:
-      "A personal RAG system that indexes notes, PDFs, and URLs into a pgvector store. Ask questions in plain language, get answers with citations. Zero cloud lock-in.",
-    stack:       ["Next.js", "Supabase pgvector", "Embeddings", "TypeScript"],
+      "A SaaS dashboard for managing job applications: full CRUD, filtering, status tracking and stats charts, behind JWT-protected routes. Express and Prisma power the API while React Query keeps the client in sync.",
+    stack:       ["React", "Vite", "Express", "Prisma", "PostgreSQL"],
     image:       "https://picsum.photos/seed/shelf-library-books-dark/800/600",
     githubUrl:   "https://github.com/juan888420/job-tracker",
     accent:      "167 139 250",
@@ -68,10 +68,10 @@ const SECONDARY: Project[] = [
   {
     slug:        "MistherBarber",
     title:       "MistherBarber",
-    tagline:     "Analytics for vacation rental hosts.",
+    tagline:     "A modern web presence for a barbershop.",
     description:
-      "Real-time occupancy and revenue dashboard that pulls from Airbnb, Booking.com, and direct channels. Built for a host managing 14 properties who was drowning in spreadsheets.",
-    stack:       ["Next.js", "Supabase", "Recharts", "Node.js"],
+      "Marketing site for a barbershop brand: services, styling and booking information in a clean, image-driven layout. Built with Svelte and deployed on Vercel.",
+    stack:       ["Svelte", "Tailwind", "Vercel"],
     image:       "/misther_barber.png",
     liveUrl:     "https://misther-baber-dqv2vebj2-juan-pablo-s-projects17.vercel.app/",
     githubUrl:   "https://github.com/juan888420/Misther_Baber",
