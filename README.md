@@ -10,8 +10,7 @@ Personal portfolio built as a product: dark, minimal and motion-driven, inspired
 
 A single-page portfolio for a full-stack developer focused on AI products and automations. It showcases projects, skills and contact info with a premium dark UI, custom canvas animations and careful attention to spacing and typography.
 
-<!-- Screenshot: replace with a real capture of the hero section -->
-<!-- ![Portfolio hero](docs/screenshot-hero.png) -->
+![Portfolio hero](public/screenshot.png)
 
 ## Features
 
@@ -37,8 +36,8 @@ A single-page portfolio for a full-stack developer focused on AI products and au
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/juan888420/new-portafolio.git
-   cd new-portafolio
+   git clone https://github.com/juan888420/juan-urrego-portfolio.git
+   cd juan-urrego-portfolio
    ```
 
 2. Install dependencies:
